@@ -6,7 +6,7 @@ st.set_page_config(page_title="Fonksiyonel Tıp & Farmakodinamik", page_icon="�
 
 class AdvancedClinicalEngine:
     def __init__(self):
-        # Parametre bilgileri ve Fonksiyonel Tıp Optimal Aralıkları
+        # Parametre bilgileri, Fonksiyonel Optimal Aralıklar ve Standart Referanslar
         self.kb = {
             "Ferritin": {"name": "Ferritin", "unit": "ng/mL", "opt_min": 50.0, "opt_max": 80.0, "ref": "13 - 150 ng/mL"},
             "Hb": {"name": "Hemoglobin (Hb)", "unit": "g/dL", "opt_min": 12.5, "opt_max": 15.5, "ref": "12.0 - 16.0 g/dL"},
@@ -16,7 +16,7 @@ class AdvancedClinicalEngine:
             "Magnezyum": {"name": "Magnezyum (Serum)", "unit": "mg/dL", "opt_min": 2.2, "opt_max": 2.6, "ref": "1.6 - 2.6 mg/dL"},
             "Cinko": {"name": "Çinko", "unit": "µg/dL", "opt_min": 100.0, "opt_max": 130.0, "ref": "70 - 120 µg/dL"},
             "CRP": {"name": "hs-CRP (Enflamasyon)", "unit": "mg/L", "opt_min": 0.0, "opt_max": 1.0, "ref": "0.0 - 5.0 mg/L"},
-            "HbA1c": {"name": "HbA1c (Metabolik)", "unit": "%", "opt_min": 4.8, "opt_max": 5.2, "ref": "%4.0 - %5.6"}
+            "HbA1c": {"name": "HbA1c (Metabolik)", "unit": "%", "opt_min": 4.8, "opt_max": 5.2, "ref": "4.0 - 5.6 %"}
         }
 
     def analiz_et(self, v):
@@ -113,33 +113,50 @@ class AdvancedClinicalEngine:
         return motor.get(param, (["Neden bulunamadı."], "Destek yok.", "Veri yok."))
 
 def pdf_raporu_uret(rapor_verisi):
-    """Tarayıcı tabanlı HTML-PDF Rapor Çıktısı Üretir"""
-    html = """
+    """Gelişmiş Yazdırma ve PDF Tetikleyicili HTML Rapor Çıktısı"""
+    
+    style_blok = """
+    <style>
+        body { font-family: 'Helvetica Neue', Arial, sans-serif; color: #2c3e50; padding: 30px; line-height: 1.6; }
+        .header { text-align: center; border-bottom: 3px solid #1a365d; padding-bottom: 15px; margin-bottom: 30px; }
+        .title { color: #1a365d; margin: 0; font-size: 24px; }
+        .sub-title { color: #4a5568; margin: 5px 0 0 0; font-size: 14px; }
+        .print-btn-container { text-align: center; margin-bottom: 20px; }
+        .print-btn { background-color: #2b6cb0; color: white; border: none; padding: 10px 20px; font-size: 14px; font-weight: bold; border-radius: 5px; cursor: pointer; }
+        .meta-table { width: 100%; border-collapse: collapse; margin-bottom: 40px; box-shadow: 0 2px 3px rgba(0,0,0,0.1); }
+        .meta-table th, .meta-table td { border: 1px solid #e2e8f0; padding: 12px; text-align: left; }
+        .meta-table th { background-color: #f7fafc; color: #2d3748; font-weight: bold; }
+        .item-box { margin-top: 25px; padding: 20px; border-left: 5px solid #2b6cb0; background: #f7fafc; border-radius: 0 8px 8px 0; page-break-inside: avoid; }
+        .item-title { font-weight: bold; color: #2c5282; font-size: 18px; margin-bottom: 10px; }
+        @media print {
+            .print-btn-container { display: none; }
+            body { padding: 0; }
+        }
+    </style>
+    """
+
+    html = f"""
     <html>
     <head>
         <meta charset="utf-8">
-        <style>
-            body { font-family: Arial, sans-serif; color: #333; padding: 20px; }
-            .header { text-align: center; border-bottom: 2px solid #37474f; padding-bottom: 10px; }
-            .title { color: #1565c0; margin: 0; }
-            .meta-table { width: 100%; margin-top: 20px; border-collapse: collapse; }
-            .meta-table th, .meta-table td { border: 1px solid #ddd; padding: 10px; text-align: left; }
-            .meta-table th { background-color: #f5f5f5; }
-            .item-box { margin-top: 20px; padding: 15px; border-left: 4px solid #1565c0; background: #fafafa; }
-            .item-title { font-weight: bold; color: #2e7d32; font-size: 16px; }
-        </style>
+        <title>Klinik Destek Raporu</title>
+        {style_blok}
     </head>
     <body>
+        <div class="print-btn-container">
+            <button class="print-btn" onclick="window.print()">🖨️ PDF Olarak Kaydet / Yazdır</button>
+        </div>
         <div class="header">
             <h2 class="title">🧬 Patofizyoloji ve Klinik Destek Raporu</h2>
-            <p>Fonksiyonel Tıp ve Farmakodinamik Değerlendirme Paneli</p>
+            <p class="sub-title">Fonksiyonel Tıp ve Farmakodinamik Değerlendirme Paneli</p>
         </div>
         <table class="meta-table">
             <thead>
                 <tr>
                     <th>Parametre</th>
                     <th>Ölçülen Değer</th>
-                    <th>Fonksiyonel Aralık (Optimal)</th>
+                    <th>Standart Referans</th>
+                    <th>Fonksiyonel Optimal Aralık</th>
                     <th>Durum</th>
                 </tr>
             </thead>
@@ -150,6 +167,7 @@ def pdf_raporu_uret(rapor_verisi):
                 <tr>
                     <td><b>{p_name}</b></td>
                     <td>{veri['deger']}</td>
+                    <td>{veri['lab_ref']}</td>
                     <td>{veri['opt_aralik']}</td>
                     <td>{veri['durum']}</td>
                 </tr>
@@ -157,18 +175,19 @@ def pdf_raporu_uret(rapor_verisi):
     html += "</tbody></table>"
     
     for p_name, veri in rapor_verisi.items():
+        nedenler_str = ", ".join(veri['nedenler'])
         html += f"""
         <div class="item-box">
             <div class="item-title">🔹 {p_name} ({veri['deger']})</div>
             <p>{veri['dinamik']}</p>
-            <p><b>Olası Klinik Nedenler:</b> {', '.join(veri['nedenler'])}</p>
+            <p><b>Olası Klinik Nedenler:</b> {nedenler_str}</p>
             <p>💡 <b>OTC ve Takviye Önerisi:</b> <i>{veri['takviye']}</i></p>
         </div>
         """
     html += "</body></html>"
     
     b64 = base64.b64encode(html.encode('utf-8')).decode()
-    return f'<a href="data:text/html;charset=utf-8;base64,{b64}" download="Klinik_Destek_Raporu.html" style="text-decoration:none;"><button style="width:100%; background-color:#1565c0; color:white; border:none; padding:12px; border-radius:8px; font-size:16px; font-weight:bold; cursor:pointer;">📥 PDF / Baskı Raporunu İndir</button></a>'
+    return f'<a href="data:text/html;charset=utf-8;base64,{b64}" download="Klinik_Destek_Raporu.html" style="text-decoration:none;"><button style="width:100%; background-color:#1565c0; color:white; border:none; padding:12px; border-radius:8px; font-size:16px; font-weight:bold; cursor:pointer;">📥 Rapor Dosyasını İndir (.html)</button></a>'
 
 # --- TELEFON ARAYÜZÜ (STREAMLIT UI) ---
 st.title("🩺 Fonksiyonel Tıp & Farmakodinamik")
@@ -176,9 +195,9 @@ st.write("Kan değerlerini girin veya tahlil fotoğrafını yükleyin.")
 st.markdown("---")
 
 # Referans Aralıkları Bilgi Paneli
-with st.expander("📊 Referans Aralıkları Kılavuzu (Lab vs. Fonksiyonel)", expanded=False):
+with st.expander("📊 Referans Aralıkları Kılavuzu (Standart vs. Fonksiyonel)", expanded=False):
     st.markdown("""
-    | Parametre | Standart Lab Referansı | Fonksiyonel Tıp (Optimal) |
+    | Parametre | Standart Referans Değeri | Fonksiyonel Tıp (Optimal) |
     | :--- | :--- | :--- |
     | **Ferritin** | 13 - 150 ng/mL | **50.0 - 80.0 ng/mL** |
     | **Hemoglobin (Hb)** | 12.0 - 16.0 g/dL | **12.5 - 15.5 g/dL** |
@@ -188,7 +207,7 @@ with st.expander("📊 Referans Aralıkları Kılavuzu (Lab vs. Fonksiyonel)", e
     | **Magnezyum** | 1.6 - 2.6 mg/dL | **2.2 - 2.6 mg/dL** |
     | **Çinko** | 70 - 120 µg/dL | **100.0 - 130.0 µg/dL** |
     | **hs-CRP** | 0.0 - 5.0 mg/L | **0.0 - 1.0 mg/L** |
-    | **HbA1c** | %4.0 - %5.6 | **%4.8 - %5.2** |
+    | **HbA1c** | 4.0 - 5.6 % | **4.8 - 5.2 %** |
     """)
 
 st.subheader("📸 1. Aşama: Fotoğraf Yükle")
@@ -234,22 +253,20 @@ if st.button("📊 Klinik & Farmakodinamik Motoru Çalıştır", type="primary",
     st.markdown("---")
     st.subheader("📑 Patofizyoloji ve Klinik Destek Raporu")
     
-    # Rapor indirme butonunu en üste koyuyoruz
     st.markdown(pdf_raporu_uret(rapor_sonuclari), unsafe_html=True)
     st.markdown("<br>", unsafe_html=True)
     
     for p_name, veri in rapor_sonuclari.items():
         with st.expander(f"🔹 {p_name} — {veri['deger']}", expanded=True):
-            
-            # Klasik Laboratuvar ve Fonksiyonel Aralık gösterimi
-            st.caption(f"Laboratuvar Ref: {veri['lab_ref']} | Fonksiyonel Optimal: {veri['opt_aralik']}")
+            # Alt kısımdaki karmaşayı önlemek için tek satırda temiz gösterim sağlandı.
+            st.caption(f"Standart Referans: {veri['lab_ref']} | Fonksiyonel Optimal: {veri['opt_aralik']}")
             
             if veri["tip"] == "dusuk":
-                st.success(veri["durum"])
+                st.warning(veri["durum"])
             elif veri["tip"] == "yuksek":
                 st.error(veri["durum"])
             else:
-                st.info(veri["durum"])
+                st.success(veri["durum"])
             
             st.markdown(veri['dinamik'])
             st.markdown("**[Olası Klinik Nedenler]:**")
