@@ -1,20 +1,22 @@
 import streamlit as st
+import base64
 
 # Sayfa Yapılandırması (Mobil Uyumlu)
 st.set_page_config(page_title="Fonksiyonel Tıp & Farmakodinamik", page_icon="🧬", layout="centered")
 
 class AdvancedClinicalEngine:
     def __init__(self):
+        # Parametre bilgileri ve Fonksiyonel Tıp Optimal Aralıkları
         self.kb = {
-            "Ferritin": {"name": "Ferritin", "unit": "ng/mL", "opt_min": 50.0, "opt_max": 80.0},
-            "Hb": {"name": "Hemoglobin (Hb)", "unit": "g/dL", "opt_min": 12.5, "opt_max": 15.5},
-            "B12": {"name": "B12 Vitamini", "unit": "pg/mL", "opt_min": 600.0, "opt_max": 1000.0},
-            "D_Vitamini": {"name": "25-OH Vitamin D3", "unit": "ng/mL", "opt_min": 50.0, "opt_max": 80.0},
-            "TSH": {"name": "TSH", "unit": "mIU/L", "opt_min": 0.5, "opt_max": 2.0},
-            "Magnezyum": {"name": "Magnezyum (Serum)", "unit": "mg/dL", "opt_min": 2.2, "opt_max": 2.6},
-            "Cinko": {"name": "Çinko", "unit": "µg/dL", "opt_min": 100.0, "opt_max": 130.0},
-            "CRP": {"name": "hs-CRP (Enflamasyon)", "unit": "mg/L", "opt_min": 0.0, "opt_max": 1.0},
-            "HbA1c": {"name": "HbA1c (Metabolik)", "unit": "%", "opt_min": 4.8, "opt_max": 5.2}
+            "Ferritin": {"name": "Ferritin", "unit": "ng/mL", "opt_min": 50.0, "opt_max": 80.0, "ref": "13 - 150 ng/mL"},
+            "Hb": {"name": "Hemoglobin (Hb)", "unit": "g/dL", "opt_min": 12.5, "opt_max": 15.5, "ref": "12.0 - 16.0 g/dL"},
+            "B12": {"name": "B12 Vitamini", "unit": "pg/mL", "opt_min": 600.0, "opt_max": 1000.0, "ref": "200 - 900 pg/mL"},
+            "D_Vitamini": {"name": "25-OH Vitamin D3", "unit": "ng/mL", "opt_min": 50.0, "opt_max": 80.0, "ref": "30 - 100 ng/mL"},
+            "TSH": {"name": "TSH", "unit": "mIU/L", "opt_min": 0.5, "opt_max": 2.0, "ref": "0.4 - 4.0 mIU/L"},
+            "Magnezyum": {"name": "Magnezyum (Serum)", "unit": "mg/dL", "opt_min": 2.2, "opt_max": 2.6, "ref": "1.6 - 2.6 mg/dL"},
+            "Cinko": {"name": "Çinko", "unit": "µg/dL", "opt_min": 100.0, "opt_max": 130.0, "ref": "70 - 120 µg/dL"},
+            "CRP": {"name": "hs-CRP (Enflamasyon)", "unit": "mg/L", "opt_min": 0.0, "opt_max": 1.0, "ref": "0.0 - 5.0 mg/L"},
+            "HbA1c": {"name": "HbA1c (Metabolik)", "unit": "%", "opt_min": 4.8, "opt_max": 5.2, "ref": "%4.0 - %5.6"}
         }
 
     def analiz_et(self, v):
@@ -25,18 +27,18 @@ class AdvancedClinicalEngine:
             
             if deger < meta["opt_min"]:
                 durum = "Düşük (Fonksiyonel Eksiklik) 📉"
-                tip = "dusuk"  # Yeşil kutu tetikleyecek
+                tip = "dusuk"
                 nedenler, takviye, dinamik = self._dusun_dusuk(param, v)
             elif deger > meta["opt_max"]:
                 durum = "Yüksek (Optimal Sınırın Üzerinde) 📈"
-                tip = "yuksek"  # Kırmızı kutu tetikleyecek
+                tip = "yuksek"
                 nedenler, takviye, dinamik = self._dusun_yuksek(param, v)
             else:
                 durum = "Optimal (Fonksiyonel Aralıkta) ✅"
-                tip = "optimal"  # Gri/Nötr kutu tetikleyecek
+                tip = "optimal"
                 nedenler = ["Klinik risk saptanmadı. Hücresel denge kararlı."]
                 takviye = "Destek gerekmiyor. Mevcut beslenme düzeni korunabilir."
-                dinamik = "🔗 **Biyokimyasal Durum:** İlgili yolaklar ve reseptör duyarlılığı optimal düzeyde."
+                dinamik = "🔗 Biyokimyasal Durum: İlgili yolaklar ve reseptör duyarlılığı optimal düzeyde."
 
             sonuclar[meta["name"]] = {
                 "deger": f"{deger} {meta['unit']}",
@@ -44,7 +46,9 @@ class AdvancedClinicalEngine:
                 "tip": tip,
                 "nedenler": nedenler,
                 "takviye": takviye,
-                "dinamik": dinamik
+                "dinamik": dinamik,
+                "opt_aralik": f"{meta['opt_min']} - {meta['opt_max']} {meta['unit']}",
+                "lab_ref": meta["ref"]
             }
         return sonuclar
 
@@ -53,32 +57,32 @@ class AdvancedClinicalEngine:
             "Ferritin": (
                 ["Mide asidi eksikliği", "Sızdıran bağırsak", "Yetersiz beslenme"],
                 "Demir Bisglisinat veya Lipozomal Demir (C Vitamini ile).",
-                "🧬 **Biyokimyasal Etkileşim:** Demir eksikliği TPO aktivitesini inhibe eder. T4-T3 dönüşümü yavaşlar ve TSH yükselir."
+                "🧬 Biyokimyasal Etkileşim: Demir eksikliği TPO aktivitesini inhibe eder. T4-T3 dönüşümü yavaşlar ve TSH yükselir."
             ),
             "B12": (
                 ["PPI (Mide Koruyucu) kullanımı", "Metformin kullanımı", "Emilim bozukluğu"],
                 "Metilkobalamin veya Adenozilkobalamin (Dilaltı).",
-                "🧬 **Biyokimyasal Etkileşim:** B12 eksikliği metilasyonu tıkar, Homosistein birikir ve kardiyovasküler risk artar."
+                "🧬 Biyokimyasal Etkileşim: B12 eksikliği metilasyonu tıkar, Homosistein birikir ve kardiyovasküler risk artar."
             ),
             "D_Vitamini": (
                 ["Güneş ışığı eksikliği", "Yağ emilim sorunları"],
                 "Vitamin D3 + K2 (Yağlı öğünle).",
-                "🧬 **Biyokimyasal Etkileşim:** D3 eksikliği kalsiyum emilimini düşürür, PTH kompenzatuar olarak yükselir."
+                "🧬 Biyokimyasal Etkileşim: D3 eksikliği kalsiyum emilimini düşürür, PTH kompenzatuar olarak yükselir."
             ),
             "Magnezyum": (
                 ["Kronik stres (Kortizol)", "Yoğun kahve/alkol tüketimi"],
                 "Malat (Kas), Bisglisinat (Uyku/Anksiyete) veya Sitrat.",
-                "🧬 **Biyokimyasal Etkileşim:** Eksiklik insülin reseptör aktivitesini bozarak doğrudan insülin direncini (HbA1c) tetikler."
+                "🧬 Biyokimyasal Etkileşim: Eksiklik insülin reseptör aktivitesini bozarak doğrudan insülin direncini (HbA1c) tetikler."
             ),
             "Cinko": (
                 ["Fitattan zengin beslenme", "Bağırsak enflamasyonu"],
                 "Çinko Pikolinat veya Bisglisinat.",
-                "🧬 **Biyokimyasal Etkileşim:** Çinko eksikliği mide asidini (HCl) düşürür; Ferritin ve B12 emilimi sekonder olarak çöker."
+                "🧬 Biyokimyasal Etkileşim: Çinko eksikliği mide asidini (HCl) düşürür; Ferritin ve B12 emilimi sekonder olarak çöker."
             ),
-            "Hb": (["Demir eksikliği anemi", "B12 eksikliği"], "Şelatlı Demir veya Aktif B Kompleks.", "🧬 **Biyokimyasal Etkileşim:** Mitokondriyal ATP sentezi yavaşlar, doku hipoksisi ve yorgunluk başlar."),
-            "TSH": (["Hipertiroidi eğilimi"], "Klinisyen takibi.", "🧬 **Biyokimyasal Etkileşim:** Metabolizma hızı kontrolsüz artar."),
-            "CRP": (["Risk yok"], "Düşük CRP idealdir.", "🧬 **Biyokimyasal Etkileşim:** Sistemik enflamatuar yük düşüktür."),
-            "HbA1c": (["Reaktif hipoglisemi"], "Protein ağırlıklı beslenme.", "🧬 **Biyokimyasal Etkileşim:** Hücresel glukoz dalgalanmaları mevcuttur.")
+            "Hb": (["Demir eksikliği anemisi", "B12 eksikliği"], "Şelatlı Demir veya Aktif B Kompleks.", "🧬 Biyokimyasal Etkileşim: Mitokondriyal ATP sentezi yavaşlar, doku hipoksisi ve yorgunluk başlar."),
+            "TSH": (["Hipertiroidi eğilimi"], "Klinisyen takibi.", "🧬 Biyokimyasal Etkileşim: Metabolizma hızı kontrolsüz artar."),
+            "CRP": (["Risk yok"], "Düşük CRP idealdir.", "🧬 Biyokimyasal Etkileşim: Sistemik enflamatuar yük düşüktür."),
+            "HbA1c": (["Reaktif hipoglisemi"], "Protein ağırlıklı beslenme.", "🧬 Biyokimyasal Etkileşim: Hücresel glukoz dalgalanmaları mevcuttur.")
         }
         return motor.get(param, (["Neden bulunamadı."], "Destek yok.", "Veri yok."))
 
@@ -87,31 +91,105 @@ class AdvancedClinicalEngine:
             "CRP": (
                 ["Akut enfeksiyon", "Kronik enflamasyon", "Otoimmünite"],
                 "Omega-3 (Yüksek EPA/DHA) ve Lipozomal Kurkumin.",
-                "🧬 **Biyokimyasal Etkileşim:** Yüksek CRP karaciğerden Hepsidin salgılatır. Hepsidin demir emilimini bloke eder; Ferritin akut faz reaktanı olarak yükselirken hücresel demir çöker."
+                "🧬 Biyokimyasal Etkileşim: Yüksek CRP karaciğerden Hepsidin salgılatır. Hepsidin demir emilimini bloke eder; Ferritin akut faz reaktanı olarak yükselirken hücresel demir çöker."
             ),
             "HbA1c": (
                 ["İnsülin direnci", "Metabolik sendrom"],
                 "Berberin, Alfa Lipoik Asit ve Krom Pikolinat.",
-                "🧬 **Biyokimyasal Etkileşim:** Kronik hiperglisemi AGEs birikimine yol açar, Nitrik Oksit (NO) sentezini düşürür ve damar hasarı başlatır."
+                "🧬 Biyokimyasal Etkileşim: Kronik hiperglisemi AGEs birikimine yol açar, Nitrik Oksit (NO) sentezini düşürür ve damar hasarı başlatır."
             ),
             "TSH": (
                 ["Subklinik Hipotiroidi (Haşimato)"],
                 "Selenyum (L-Selenometiyonin) ve CoQ10.",
-                "🧬 **Biyokimyasal Etkileşim:** Tiroid yetersizliği karaciğerde LDL reseptörlerini azaltır; dislipidemiye ve kolesterol yüksekliğine yol açar."
+                "🧬 Biyokimyasal Etkileşim: Tiroid yetersizliği karaciğerde LDL reseptörlerini azaltır; dislipidemiye ve kolesterol yüksekliğine yol açar."
             ),
-            "Ferritin": (["Aşırı demir yükü", "Karaciğer yağlanması"], "Flebotomi kontrolü, demirli multivitaminlerin kesilmesi.", "🧬 **Biyokimyasal Etkileşim:** Serbest demir Fenton Reaksiyonu ile mitokondriyal DNA hasarı yaratır."),
-            "B12": (["Yüksek doz sentetik takviye"], "Takviye kesilir.", "🧬 **Biyokimyasal Etkileşim:** Hücre içine alınamayan B12 kanda birikir, fonksiyonel metilasyon bozukluğuna işarettir."),
-            "D_Vitamini": (["Kontrolsüz doz kullanımı"], "D3 stop, kalsiyum takibi.", "🧬 **Biyokimyasal Etkileşim:** Yumuşak doku ve damar endotelinde kalsifikasyon riski artar."),
-            "Magnezyum": (["Böbrek yetmezliği"], "Magnezyum stop.", "🧬 **Biyokimyasal Etkileşim:** Nöromüsküler kavşakta asetilkolin baskılanır, refleksler yavaşlar."),
-            "Cinko": (["Aşırı doz takviye"], "Çinko takviyesi kesilir.", "🧬 **Biyokimyasal Etkileşim:** Yüksek çinko metallotiyonein proteinini uyarır. Bu protein bakıra bağlanarak Bakır emilimini felç eder."),
-            "Hb": (["Dehidratasyon", "Sigara / Hipoksi"], "Sıvı alımı artırılmalı.", "🧬 **Biyokimyasal Etkileşim:** Kan viskozitesi artar, mikrodolaşım direnci yükselir.")
+            "Ferritin": (["Aşırı demir yükü", "Karaciğer yağlanması"], "Flebotomi kontrolü, demirli multivitaminlerin kesilmesi.", "🧬 Biyokimyasal Etkileşim: Serbest demir Fenton Reaksiyonu ile mitokondriyal DNA hasarı yaratır."),
+            "B12": (["Yüksek doz sentetik takviye"], "Takviye kesilir.", "🧬 Biyokimyasal Etkileşim: Hücre içine alınamayan B12 kanda birikir, fonksiyonel metilasyon bozukluğuna işarettir."),
+            "D_Vitamini": (["Kontrolsüz doz kullanımı"], "D3 stop, kalsiyum takibi.", "🧬 Biyokimyasal Etkileşim: Yumuşak doku ve damar endotelinde kalsifikasyon riski artar."),
+            "Magnezyum": (["Böbrek yetmezliği"], "Magnezyum stop.", "🧬 Biyokimyasal Etkileşim: Nöromüsküler kavşakta asetilkolin baskılanır, refleksler yavaşlar."),
+            "Cinko": (["Aşırı doz takviye"], "Çinko takviyesi kesilir.", "🧬 Biyokimyasal Etkileşim: Yüksek çinko metallotiyonein proteinini uyarır. Bu protein bakıra bağlanarak Bakır emilimini felç eder."),
+            "Hb": (["Dehidratasyon", "Sigara / Hipoksi"], "Sıvı alımı artırılmalı.", "🧬 Biyokimyasal Etkileşim: Kan viskozitesi artar, mikrodolaşım direnci yükselir.")
         }
         return motor.get(param, (["Neden bulunamadı."], "Destek yok.", "Veri yok."))
+
+def pdf_raporu_uret(rapor_verisi):
+    """Tarayıcı tabanlı HTML-PDF Rapor Çıktısı Üretir"""
+    html = """
+    <html>
+    <head>
+        <meta charset="utf-8">
+        <style>
+            body { font-family: Arial, sans-serif; color: #333; padding: 20px; }
+            .header { text-align: center; border-bottom: 2px solid #37474f; padding-bottom: 10px; }
+            .title { color: #1565c0; margin: 0; }
+            .meta-table { width: 100%; margin-top: 20px; border-collapse: collapse; }
+            .meta-table th, .meta-table td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+            .meta-table th { background-color: #f5f5f5; }
+            .item-box { margin-top: 20px; padding: 15px; border-left: 4px solid #1565c0; background: #fafafa; }
+            .item-title { font-weight: bold; color: #2e7d32; font-size: 16px; }
+        </style>
+    </head>
+    <body>
+        <div class="header">
+            <h2 class="title">🧬 Patofizyoloji ve Klinik Destek Raporu</h2>
+            <p>Fonksiyonel Tıp ve Farmakodinamik Değerlendirme Paneli</p>
+        </div>
+        <table class="meta-table">
+            <thead>
+                <tr>
+                    <th>Parametre</th>
+                    <th>Ölçülen Değer</th>
+                    <th>Fonksiyonel Aralık (Optimal)</th>
+                    <th>Durum</th>
+                </tr>
+            </thead>
+            <tbody>
+    """
+    for p_name, veri in rapor_verisi.items():
+        html += f"""
+                <tr>
+                    <td><b>{p_name}</b></td>
+                    <td>{veri['deger']}</td>
+                    <td>{veri['opt_aralik']}</td>
+                    <td>{veri['durum']}</td>
+                </tr>
+        """
+    html += "</tbody></table>"
+    
+    for p_name, veri in rapor_verisi.items():
+        html += f"""
+        <div class="item-box">
+            <div class="item-title">🔹 {p_name} ({veri['deger']})</div>
+            <p>{veri['dinamik']}</p>
+            <p><b>Olası Klinik Nedenler:</b> {', '.join(veri['nedenler'])}</p>
+            <p>💡 <b>OTC ve Takviye Önerisi:</b> <i>{veri['takviye']}</i></p>
+        </div>
+        """
+    html += "</body></html>"
+    
+    b64 = base64.b64encode(html.encode('utf-8')).decode()
+    return f'<a href="data:text/html;charset=utf-8;base64,{b64}" download="Klinik_Destek_Raporu.html" style="text-decoration:none;"><button style="width:100%; background-color:#1565c0; color:white; border:none; padding:12px; border-radius:8px; font-size:16px; font-weight:bold; cursor:pointer;">📥 PDF / Baskı Raporunu İndir</button></a>'
 
 # --- TELEFON ARAYÜZÜ (STREAMLIT UI) ---
 st.title("🩺 Fonksiyonel Tıp & Farmakodinamik")
 st.write("Kan değerlerini girin veya tahlil fotoğrafını yükleyin.")
 st.markdown("---")
+
+# Referans Aralıkları Bilgi Paneli
+with st.expander("📊 Referans Aralıkları Kılavuzu (Lab vs. Fonksiyonel)", expanded=False):
+    st.markdown("""
+    | Parametre | Standart Lab Referansı | Fonksiyonel Tıp (Optimal) |
+    | :--- | :--- | :--- |
+    | **Ferritin** | 13 - 150 ng/mL | **50.0 - 80.0 ng/mL** |
+    | **Hemoglobin (Hb)** | 12.0 - 16.0 g/dL | **12.5 - 15.5 g/dL** |
+    | **B12 Vitamini** | 200 - 900 pg/mL | **600.0 - 1000.0 pg/mL** |
+    | **25-OH Vitamin D3** | 30 - 100 ng/mL | **50.0 - 80.0 ng/mL** |
+    | **TSH** | 0.4 - 4.0 mIU/L | **0.5 - 2.0 mIU/L** |
+    | **Magnezyum** | 1.6 - 2.6 mg/dL | **2.2 - 2.6 mg/dL** |
+    | **Çinko** | 70 - 120 µg/dL | **100.0 - 130.0 µg/dL** |
+    | **hs-CRP** | 0.0 - 5.0 mg/L | **0.0 - 1.0 mg/L** |
+    | **HbA1c** | %4.0 - %5.6 | **%4.8 - %5.2** |
+    """)
 
 st.subheader("📸 1. Aşama: Fotoğraf Yükle")
 yuklenen_dosya = st.file_uploader("Tahlil fotoğrafı veya ekran görüntüsü", type=["png", "jpg", "jpeg"])
@@ -156,16 +234,22 @@ if st.button("📊 Klinik & Farmakodinamik Motoru Çalıştır", type="primary",
     st.markdown("---")
     st.subheader("📑 Patofizyoloji ve Klinik Destek Raporu")
     
+    # Rapor indirme butonunu en üste koyuyoruz
+    st.markdown(pdf_raporu_uret(rapor_sonuclari), unsafe_html=True)
+    st.markdown("<br>", unsafe_html=True)
+    
     for p_name, veri in rapor_sonuclari.items():
         with st.expander(f"🔹 {p_name} — {veri['deger']}", expanded=True):
             
-            # Tamamen Güvenli Yerel Streamlit Renk Kutuları (HTML İçermez, Hata Payı Sıfır)
+            # Klasik Laboratuvar ve Fonksiyonel Aralık gösterimi
+            st.caption(f"Laboratuvar Ref: {veri['lab_ref']} | Fonksiyonel Optimal: {veri['opt_aralik']}")
+            
             if veri["tip"] == "dusuk":
-                st.success(veri["durum"])  # Yeşil Arka Plan Kartı
+                st.success(veri["durum"])
             elif veri["tip"] == "yuksek":
-                st.error(veri["durum"])    # Kırmızı Arka Plan Kartı
+                st.error(veri["durum"])
             else:
-                st.info(veri["durum"])     # Mavi/Gri Arka Plan Kartı
+                st.info(veri["durum"])
             
             st.markdown(veri['dinamik'])
             st.markdown("**[Olası Klinik Nedenler]:**")
