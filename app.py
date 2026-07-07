@@ -162,7 +162,11 @@ if st.button("📊 Klinik & Farmakodinamik Motoru Çalıştır", type="primary",
     
     for p_name, veri in rapor_sonuclari.items():
         with st.expander(f"🔹 {p_name} — {veri['deger']}", expanded=True):
-            st.markdown(f'<div style="background-color:{veri["bg_color"]}; padding:10px; border-radius:8px; margin-bottom:12px; text-align:center;"><span style="color:{veri["text_color"]}; font-weight:bold; font-size:15px;">{veri["durum"]}</span></div>', unsafe_html=True)
+            
+            # Tırnak çakışmasını önleyen temiz HTML metot yapısı
+            html_sablonu = '<div style="background-color: {}; padding: 10px; border-radius: 8px; margin-bottom: 12px; text-align: center;"><span style="color: {}; font-weight: bold; font-size: 15px;">{}</span></div>'
+            st.markdown(html_sablonu.format(veri["bg_color"], veri["text_color"], veri["durum"]), unsafe_html=True)
+            
             st.markdown(veri['dinamik'])
             st.markdown("**[Olası Klinik Nedenler]:**")
             for n in veri['nedenler']:
