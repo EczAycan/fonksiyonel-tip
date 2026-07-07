@@ -25,18 +25,15 @@ class AdvancedClinicalEngine:
             
             if deger < meta["opt_min"]:
                 durum = "Düşük (Fonksiyonel Eksiklik) 📉"
-                bg_color = "#2e7d32"  # Koyu Yeşil
-                text_color = "#ffffff"
+                tip = "dusuk"  # Yeşil kutu tetikleyecek
                 nedenler, takviye, dinamik = self._dusun_dusuk(param, v)
             elif deger > meta["opt_max"]:
                 durum = "Yüksek (Optimal Sınırın Üzerinde) 📈"
-                bg_color = "#c62828"  # Koyu Kırmızı
-                text_color = "#ffffff"
+                tip = "yuksek"  # Kırmızı kutu tetikleyecek
                 nedenler, takviye, dinamik = self._dusun_yuksek(param, v)
             else:
                 durum = "Optimal (Fonksiyonel Aralıkta) ✅"
-                bg_color = "#37474f"  # Koyu Gri
-                text_color = "#ffffff"
+                tip = "optimal"  # Gri/Nötr kutu tetikleyecek
                 nedenler = ["Klinik risk saptanmadı. Hücresel denge kararlı."]
                 takviye = "Destek gerekmiyor. Mevcut beslenme düzeni korunabilir."
                 dinamik = "🔗 **Biyokimyasal Durum:** İlgili yolaklar ve reseptör duyarlılığı optimal düzeyde."
@@ -44,8 +41,7 @@ class AdvancedClinicalEngine:
             sonuclar[meta["name"]] = {
                 "deger": f"{deger} {meta['unit']}",
                 "durum": durum,
-                "bg_color": bg_color,
-                "text_color": text_color,
+                "tip": tip,
                 "nedenler": nedenler,
                 "takviye": takviye,
                 "dinamik": dinamik
@@ -163,9 +159,13 @@ if st.button("📊 Klinik & Farmakodinamik Motoru Çalıştır", type="primary",
     for p_name, veri in rapor_sonuclari.items():
         with st.expander(f"🔹 {p_name} — {veri['deger']}", expanded=True):
             
-            # Tırnak çakışmasını önleyen temiz HTML metot yapısı
-            html_sablonu = '<div style="background-color: {}; padding: 10px; border-radius: 8px; margin-bottom: 12px; text-align: center;"><span style="color: {}; font-weight: bold; font-size: 15px;">{}</span></div>'
-            st.markdown(html_sablonu.format(veri["bg_color"], veri["text_color"], veri["durum"]), unsafe_html=True)
+            # Tamamen Güvenli Yerel Streamlit Renk Kutuları (HTML İçermez, Hata Payı Sıfır)
+            if veri["tip"] == "dusuk":
+                st.success(veri["durum"])  # Yeşil Arka Plan Kartı
+            elif veri["tip"] == "yuksek":
+                st.error(veri["durum"])    # Kırmızı Arka Plan Kartı
+            else:
+                st.info(veri["durum"])     # Mavi/Gri Arka Plan Kartı
             
             st.markdown(veri['dinamik'])
             st.markdown("**[Olası Klinik Nedenler]:**")
