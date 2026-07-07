@@ -77,7 +77,7 @@ class AdvancedClinicalEngine:
             "Cinko": (
                 ["Fitattan zengin beslenme", "Bağırsak mukozal hasarı", "Yüksek bakır maruziyeti"],
                 "Çinko Pikolinat veya Bisglisinat şelat formları.",
-                "🧬 Biyokimyasal Etkileşim: Çinko eksikliği mide asidini (HCl) ve karbonik anhidraz enzimini düşürür; bu durum Ferritin ve B12 emilimini sekonder olarak çökertir."
+                "🧬 Biyokimyasal Etkileşim: Çinko eksikliği mide asidini (HCl) ve karbonik anhidraz enzimini düşürür; bu durum Ferritin og B12 emilimini sekonder olarak çökertir."
             ),
             "Hb": (["Hücresel hipoksi", "Demir ve B12 eksikliği anemisi"], "Şelatlı Demir veya Aktif B Kompleks.", "🧬 Biyokimyasal Etkileşim: Mitokondriyal ATP sentezi yavaşlar, doku hipoksisi başlar ve hücre koruma amaçlı enerji tasarrufu moduna geçer."),
             "TSH": (["Hipertiroidi eğilimi", "Reseptör aşırı duyarlılığı"], "Klinisyen takibi.", "🧬 Biyokimyasal Etkileşim: Hücresel bazal metabolizma hızı kontrolsüz artar."),
@@ -253,7 +253,8 @@ if st.button("📊 Klinik & Farmakodinamik Motoru Çalıştır", type="primary",
     st.markdown("---")
     st.subheader("📑 Patofizyoloji ve Klinik Destek Raporu")
     
-    st.markdown(pdf_raporu_uret(rapor_sonuclari), unsafe_html=True)
+    # CRITICAL FIX: 'unsafe_html' yerine doğrusu olan 'unsafe_allow_html' kullanıldı.
+    st.markdown(pdf_raporu_uret(rapor_sonuclari), unsafe_allow_html=True)
     st.markdown("<br>", unsafe_html=True)
     
     for p_name, veri in rapor_sonuclari.items():
@@ -267,7 +268,6 @@ if st.button("📊 Klinik & Farmakodinamik Motoru Çalıştır", type="primary",
             else:
                 st.success(veri["durum"])
             
-            # Yeni eklenen hoca anlatımı patofizyoloji ve alt mekanizmalar buraya basılıyor:
             st.markdown(veri['dinamik'])
             st.markdown("**[Bütüncül Patofizyolojik Nedenler]:**")
             for n in veri['nedenler']:
