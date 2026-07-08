@@ -77,7 +77,7 @@ class AdvancedClinicalEngine:
             "Cinko": (
                 ["Fitattan zengin beslenme", "Bağırsak mukozal hasarı", "Yüksek bakır maruziyeti"],
                 "Çinko Pikolinat veya Bisglisinat şelat formları.",
-                "🧬 Biyokimyasal Etkileşim: Çinko eksikliği mide asidini (HCl) ve karbonik anhidraz enzimini düşürür; bu durum Ferritin og B12 emilimini sekonder olarak çökertir."
+                "🧬 Biyokimyasal Etkileşim: Çinko eksikliği mide asidini (HCl) ve karbonik anhidraz enzimini düşürür; bu durum Ferritin ve B12 emilimini sekonder olarak çökertir."
             ),
             "Hb": (["Hücresel hipoksi", "Demir ve B12 eksikliği anemisi"], "Şelatlı Demir veya Aktif B Kompleks.", "🧬 Biyokimyasal Etkileşim: Mitokondriyal ATP sentezi yavaşlar, doku hipoksisi başlar ve hücre koruma amaçlı enerji tasarrufu moduna geçer."),
             "TSH": (["Hipertiroidi eğilimi", "Reseptör aşırı duyarlılığı"], "Klinisyen takibi.", "🧬 Biyokimyasal Etkileşim: Hücresel bazal metabolizma hızı kontrolsüz artar."),
@@ -105,7 +105,7 @@ class AdvancedClinicalEngine:
             ),
             "Ferritin": (["Aşırı demir yükü", "Karaciğer yağlanması", "Akut faz yanıtı"], "Flebotomi kontrolü, antioksidan tedaviler.", "🧬 Biyokimyasal Etkileşim: Serbest demir Fenton Reaksiyonu ile serbest radikaller üreterek mitokondriyal DNA hasarı yaratır."),
             "B12": (["Sentetik takviye birikimi", "Hücre içi alım defekti"], "Takviye kesilir, aktif formlar değerlendirilir.", "🧬 Biyokimyasal Etkileşim: Hücre içine alınamayan inaktif siyanokobalamin kanda birikir, fonksiyonel metilasyon bozukluğuna işarettir."),
-            "D_Vitamini": (["Toksisite sınırı", "Kontrolsüz doz kullanımı"], "D3 stop, kalsiyum ve PTH takibi.", "🧬 Biyokimyasal Etkileşim: Yumuşak dokularda ve damar endotelinde kalsifikasyon (kireçlenme) riski artar."),
+            "D_Vitamini": (["Toksisite sınırı", "Kontrolsüz doz kullanımı"], "D3 stop, kalsiyum ve PTH takibi.", "🧬 Biyokimyasal Etkileşim: Yumuşak dokularda og damar endotelinde kalsifikasyon (kireçlenme) riski artar."),
             "Magnezyum": (["İleri derece böbrek yetmezliği"], "Magnezyum stop.", "🧬 Biyokimyasal Etkileşim: Nöromüsküler kavşakta asetilkolin salınımı baskılanır, refleksler yavaşlar."),
             "Cinko": (["Aşırı doz takviye", "Bakır antagonizması"], "Çinko takviyesi kesilir.", "🧬 Biyokimyasal Etkileşim: Yüksek çinko enterositlerde metallotiyonein proteinini uyarır, bu protein bakıra bağlanarak Bakır emilimini tamamen felç eder."),
             "Hb": (["Dehidratasyon", "Kronik hipoksi yanıtı (Sigara vb.)"], "Sıvı alımı artırılmalı, doku oksijenasyonu izlenmeli.", "🧬 Biyokimyasal Etkileşim: Kan viskozitesi artar, mikrodolaşım ve kapiler sinyal iletim direnci yükselir.")
@@ -253,9 +253,11 @@ if st.button("📊 Klinik & Farmakodinamik Motoru Çalıştır", type="primary",
     st.markdown("---")
     st.subheader("📑 Patofizyoloji ve Klinik Destek Raporu")
     
-    # CRITICAL FIX: 'unsafe_html' yerine doğrusu olan 'unsafe_allow_html' kullanıldı.
+    # TAM DÜZELTME: Bu satırdaki parametre de güvenli hale getirildi
     st.markdown(pdf_raporu_uret(rapor_sonuclari), unsafe_allow_html=True)
-    st.markdown("<br>", unsafe_html=True)
+    
+    # TAM DÜZELTME: Buradaki <br> boşluk satırı parametresi de düzeltildi
+    st.markdown("<br>", unsafe_allow_html=True)
     
     for p_name, veri in rapor_sonuclari.items():
         with st.expander(f"🔹 {p_name} — {veri['deger']}", expanded=True):
