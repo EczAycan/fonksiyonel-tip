@@ -28,17 +28,16 @@ class AdvancedClinicalEngine:
             if deger < meta["opt_min"]:
                 durum = "Düşük (Fonksiyonel Eksiklik) 📉"
                 tip = "dusuk"
-                nedenler, takviye, dinamik = self._dusun_dusuk(param, v)
+                nedenler, takviye = self._dusun_dusuk(param, v)
             elif deger > meta["opt_max"]:
                 durum = "Yüksek (Optimal Sınırın Üzerinde) 📈"
                 tip = "yuksek"
-                nedenler, takviye, dinamik = self._dusun_yuksek(param, v)
+                nedenler, takviye = self._dusun_yuksek(param, v)
             else:
                 durum = "Optimal (Fonksiyonel Aralıkta) ✅"
                 tip = "optimal"
                 nedenler = ["Klinik risk saptanmadı. Hücresel denge kararlı."]
                 takviye = "Destek gerekmiyor. Mevcut beslenme düzeni korunabilir."
-                dinamik = "🔗 Biyokimyasal Durum: İlgili yolaklar, metilasyon döngüsü ve reseptör duyarlılığı optimal düzeyde."
 
             sonuclar[meta["name"]] = {
                 "deger": f"{deger} {meta['unit']}",
@@ -46,7 +45,6 @@ class AdvancedClinicalEngine:
                 "tip": tip,
                 "nedenler": nedenler,
                 "takviye": takviye,
-                "dinamik": dinamik,
                 "opt_aralik": f"{meta['opt_min']} - {meta['opt_max']} {meta['unit']}",
                 "lab_ref": meta["ref"]
             }
@@ -56,61 +54,53 @@ class AdvancedClinicalEngine:
         motor = {
             "Ferritin": (
                 ["Mide asidi eksikliği", "Sızdıran bağırsak sendromu", "Kronik düşük yoğunluklu enflamasyon (Hepsidin blokajı)"],
-                "Demir Bisglisinat veya Lipozomal Demir (C Vitamini kofaktörüyle). Mide asidi desteği.",
-                "🧬 Biyokimyasal Etkileşim: Demir eksikliği mitokondriyal Elektron Taşıma Zinciri'nde (ETZ) elektron kaçaklarına yol açar. Ayrıca TPO enzim aktivitesini inhibe ederek T4-T3 dönüşümünü sekteye uğratır."
+                "Demir Bisglisinat veya Lipozomal Demir (C Vitamini kofaktörüyle). Mide asidi desteği."
             ),
             "B12": (
                 ["Metilasyon döngüsü tıkanıklığı", "PPI (Mide Koruyucu) kullanımı", "Malabsorbsiyon"],
-                "Dilaltı Metilkobalamin veya Adenozilkobalamin aktif formları.",
-                "🧬 Biyokimyasal Etkileşim: B12 eksikliği Metilasyon Döngüsünü kilitler; DNA onarımı, detoksifikasyon kapasitesi ve nörotransmitter (serotonin, dopamin) sentezi sekteye uğrar."
+                "Dilaltı Metilkobalamin veya Adenozilkobalamin aktif formları."
             ),
             "D_Vitamini": (
                 ["Güneş ışığı eksikliği", "VDR (Vitamin D Reseptör) polimorfizmi", "Yağ emilim sorunları"],
-                "Vitamin D3 + K2 (Yağlı öğünle sinerjik emilim).",
-                "🧬 Biyokimyasal Etkileşim: D3 eksikliği immün modülasyonu bozar ve makrofajların fagositoz yeteneğini düşürerek inflamasyon eğilimini (CRP) artırır."
+                "Vitamin D3 + K2 (Yağlı öğünle sinerjik emilim)."
             ),
             "Magnezyum": (
                 ["Kronik sempatik dominans (Savaş ya da Kaç)", "Kortizolün Magnezyum Yağması", "Yoğun kahve/alkol tüketimi"],
-                "Hücre içi enerji için Malat, HPA aksını sakinleştirmek için Bisglisinat/Treonat formları.",
-                "🧬 Biyokimyasal Etkileşim: Stres esnasında yükselen kortizol magnezyumu böbreklerden idrarla dışarı atar (Magnezyum Yağması). Eksiklik, insülin reseptör körlüğüne yol açarak doğrudan HbA1c dalgalanmasını tetikler."
+                "Hücre içi enerji için Malat, HPA aksını sakinleştirmek için Bisglisinat/Treonat formları."
             ),
             "Cinko": (
                 ["Fitattan zengin beslenme", "Bağırsak mukozal hasarı", "Yüksek bakır maruziyeti"],
-                "Çinko Pikolinat veya Bisglisinat şelat formları.",
-                "🧬 Biyokimyasal Etkileşim: Çinko eksikliği mide asidini (HCl) ve karbonik anhidraz enzimini düşürür; bu durum Ferritin ve B12 emilimini sekonder olarak çökertir."
+                "Çinko Pikolinat veya Bisglisinat şelat formları."
             ),
-            "Hb": (["Hücresel hipoksi", "Demir ve B12 eksikliği anemisi"], "Şelatlı Demir veya Aktif B Kompleks.", "🧬 Biyokimyasal Etkileşim: Mitokondriyal ATP sentezi yavaşlar, doku hipoksisi başlar ve hücre koruma amaçlı enerji tasarrufu moduna geçer."),
-            "TSH": (["Hipertiroidi eğilimi", "Reseptör aşırı duyarlılığı"], "Klinisyen takibi.", "🧬 Biyokimyasal Etkileşim: Hücresel bazal metabolizma hızı kontrolsüz artar."),
-            "CRP": (["Risk yok"], "Düşük CRP idealdir.", "🧬 Biyokimyasal Etkileşim: Sistemik enflamatuar yük düşüktür."),
-            "HbA1c": (["Reaktif hipoglisemi", "Yetersiz glukoz yükü"], "Protein ve sağlıklı yağ ağırlıklı beslenme.", "🧬 Biyokimyasal Etkileşim: Hücresel glukoz dalgalanmaları ve glukagon aksı düzensizliği mevcuttur.")
+            "Hb": (["Hücresel hipoksi", "Demir ve B12 eksikliği anemisi"], "Şelatlı Demir veya Aktif B Kompleks."),
+            "TSH": (["Hipertiroidi eğilimi", "Reseptör aşırı duyarlılığı"], "Klinisyen takibi."),
+            "CRP": (["Risk yok"], "Düşük CRP idealdir."),
+            "HbA1c": (["Reaktif hipoglisemi", "Yetersiz glukoz yükü"], "Protein ve sağlıklı yağ ağırlıklı beslenme.")
         }
-        return motor.get(param, (["Neden bulunamadı."], "Destek yok.", "Veri yok."))
+        return motor.get(param, (["Neden bulunamadı."], "Destek yok."))
 
     def _dusun_yuksek(self, param, v):
         motor = {
             "CRP": (
                 ["Akut/Kronik enfeksiyon", "Otoimmünite (Otoenflamasyon)", "Sistemik yangı"],
-                "Yüksek EPA/DHA içeren Omega-3 ve hücresel inflamasyonu bloke eden Lipozomal Kurkumin.",
-                "🧬 Biyokimyasal Etkileşim: Yüksek CRP (enflamasyon) karaciğerden Hepsidin hormonunu salgılatır. Hepsidin bağırsak demir kapılarını kilitler; Ferritin akut faz reaktanı olarak yükselirken hücresel demir kullanılamaz, tutsak kalır."
+                "Yüksek EPA/DHA içeren Omega-3 ve hücresel inflamasyonu bloke eden Lipozomal Kurkumin."
             ),
             "HbA1c": (
                 ["İnsülin direnci (Reseptör Körlüğü)", "Metabolik Sendrom", "Glikasyon yükü"],
-                "Berberin, Alfa Lipoik Asit (ALA) ve Krom Pikolinat.",
-                "🧬 Biyokimyasal Etkileşim: Magnezyum eksikliğiyle birleşen reseptör körlüğü, glukozun hücre içine alınmasını engeller. Kanda kalan fazla glukoz proteinlere yapışarak (Glikasyon) damar endotel hasarı başlatır."
+                "Berberin, Alfa Lipoik Asit (ALA) ve Krom Pikolinat."
             ),
             "TSH": (
                 ["Subklinik Hipotiroidi", "HPA Aksı Enerji Tasarrufu Modu (Hücresel kriz)"],
-                "Selenyum (L-Selenometiyonin) ve mitokondriyal ETZ koruyucu CoQ10.",
-                "🧬 Biyokimyasal Etkileşim: Vücut hücresel demir ve ATP bulamadığında, hayatta kalmak için tiroid üzerinden metabolizmayı yavaşlatır (HPA aksı freni). Hipofiz, tiroidi uyarmak için TSH salgısını artırır."
+                "Selenyum (L-Selenometiyonin) ve mitokondriyal ETZ koruyucu CoQ10."
             ),
-            "Ferritin": (["Aşırı demir yükü", "Karaciğer yağlanması", "Akut faz yanıtı"], "Flebotomi kontrolü, antioksidan tedaviler.", "🧬 Biyokimyasal Etkileşim: Serbest demir Fenton Reaksiyonu ile serbest radikaller üreterek mitokondriyal DNA hasarı yaratır."),
-            "B12": (["Sentetik takviye birikimi", "Hücre içi alım defekti"], "Takviye kesilir, aktif formlar değerlendirilir.", "🧬 Biyokimyasal Etkileşim: Hücre içine alınamayan inaktif siyanokobalamin kanda birikir, fonksiyonel metilasyon bozukluğuna işarettir."),
-            "D_Vitamini": (["Toksisite sınırı", "Kontrolsüz doz kullanımı"], "D3 stop, kalsiyum ve PTH takibi.", "🧬 Biyokimyasal Etkileşim: Yumuşak dokularda og damar endotelinde kalsifikasyon (kireçlenme) riski artar."),
-            "Magnezyum": (["İleri derece böbrek yetmezliği"], "Magnezyum stop.", "🧬 Biyokimyasal Etkileşim: Nöromüsküler kavşakta asetilkolin salınımı baskılanır, refleksler yavaşlar."),
-            "Cinko": (["Aşırı doz takviye", "Bakır antagonizması"], "Çinko takviyesi kesilir.", "🧬 Biyokimyasal Etkileşim: Yüksek çinko enterositlerde metallotiyonein proteinini uyarır, bu protein bakıra bağlanarak Bakır emilimini tamamen felç eder."),
-            "Hb": (["Dehidratasyon", "Kronik hipoksi yanıtı (Sigara vb.)"], "Sıvı alımı artırılmalı, doku oksijenasyonu izlenmeli.", "🧬 Biyokimyasal Etkileşim: Kan viskozitesi artar, mikrodolaşım ve kapiler sinyal iletim direnci yükselir.")
+            "Ferritin": (["Aşırı demir yükü", "Karaciğer yağlanması", "Akut faz yanıtı"], "Flebotomi kontrolü, antioksidan tedaviler."),
+            "B12": (["Sentetik takviye birikimi", "Hücre içi alım defekti"], "Takviye kesilir, aktif formlar değerlendirilir."),
+            "D_Vitamini": (["Toksisite sınırı", "Kontrolsüz doz kullanımı"], "D3 stop, kalsiyum og PTH takibi."),
+            "Magnezyum": (["İleri derece böbrek yetmezliği"], "Magnezyum stop."),
+            "Cinko": (["Aşırı doz takviye", "Bakır antagonizması"], "Çinko takviyesi kesilir."),
+            "Hb": (["Dehidratasyon", "Kronik hipoksi yanıtı (Sigara vb.)"], "Sıvı alımı artırılmalı, doku oksijenasyonu izlenmeli.")
         }
-        return motor.get(param, (["Neden bulunamadı."], "Destek yok.", "Veri yok."))
+        return motor.get(param, (["Neden bulunamadı."], "Destek yok."))
 
 def pdf_raporu_uret(rapor_verisi):
     """Gelişmiş Yazdırma ve PDF Tetikleyicili HTML Rapor Çıktısı"""
@@ -126,8 +116,10 @@ def pdf_raporu_uret(rapor_verisi):
         .meta-table { width: 100%; border-collapse: collapse; margin-bottom: 40px; box-shadow: 0 2px 3px rgba(0,0,0,0.1); }
         .meta-table th, .meta-table td { border: 1px solid #e2e8f0; padding: 12px; text-align: left; }
         .meta-table th { background-color: #f7fafc; color: #2d3748; font-weight: bold; }
-        .item-box { margin-top: 25px; padding: 20px; border-left: 5px solid #2b6cb0; background: #f7fafc; border-radius: 0 8px 8px 0; page-break-inside: avoid; }
-        .item-title { font-weight: bold; color: #2c5282; font-size: 18px; margin-bottom: 10px; }
+        .item-box { margin-top: 15px; padding: 15px; border-left: 4px solid #4a5568; background: #f7fafc; border-radius: 0 6px 6px 0; page-break-inside: avoid; }
+        .item-title { font-weight: bold; color: #2c5282; font-size: 16px; margin-bottom: 5px; }
+        .global-box { margin-top: 35px; padding: 25px; border-left: 6px solid #1565c0; background: #e3f2fd; border-radius: 0 8px 8px 0; }
+        .global-title { font-weight: bold; color: #0d47a1; font-size: 20px; margin-bottom: 12px; }
         @media print {
             .print-btn-container { display: none; }
             body { padding: 0; }
@@ -178,12 +170,27 @@ def pdf_raporu_uret(rapor_verisi):
         nedenler_str = ", ".join(veri['nedenler'])
         html += f"""
         <div class="item-box">
-            <div class="item-title">🔹 {p_name} ({veri['deger']})</div>
-            <p>{veri['dinamik']}</p>
-            <p><b>Olası Bütüncül Nedenler:</b> {nedenler_str}</p>
-            <p>💡 <b>OTC ve Hücresel Onarım Takviyesi:</b> <i>{veri['takviye']}</i></p>
+            <div class="item-title">🔹 {p_name} ({veri['deger']}) — {veri['durum']}</div>
+            <p style="margin: 3px 0;"><b>Olası Nedenler:</b> {nedenler_str}</p>
+            <p style="margin: 3px 0;">💡 <b>OTC Önerisi:</b> <i>{veri['takviye']}</i></p>
         </div>
         """
+        
+    # Hastaya özgü entegre edilen bütüncül hoca özeti HTML'e gömülüyor
+    html += f"""
+    <div class="global-box">
+        <div class="global-title">🧬 GENEL KLİNİK DEĞERLENDİRME & PATOFİZYOLOJİK ETKİLEŞİM</div>
+        <p><b>Hücresel Sinyal İletim Hikayesi:</b></p>
+        <p>Girilen laboratuvar bulguları, vücutta birbiri ardına tetiklenen sistemik bir <b>"Domino Etkisini"</b> net bir şekilde doğrulamaktadır. Tekil değerlerden ziyade, bu değerlerin birbiriyle konuşma dili hücresel krizleri işaret eder:</p>
+        <ul>
+            <li><b>Metilasyon Döngüsü ve Enerji Krizi:</b> Fonksiyonel düzeyde baskılanan B12 Vitamini, hücrenin ana yazılım mekanizması olan metilasyon döngüsünü kilitleyerek detoksifikasyon ve nörotransmitter sentezini yavaşlatır. Ferritin ve Hemoglobin düşüklüğü ise mitokondriyal Elektron Taşıma Zinciri'nde (ETZ) oksijenizasyonu bozarak kronik yorgunluğu ve hücresel stresi derinleştirir.</li>
+            <li><b>Kortizolün Magnezyum Yağması ve Reseptör Körlüğü:</b> Kronik sempatik dominansa (stres aksına) bağlı olarak salgılanan kortizol, magnezyumu böbreklerden dışarı atmaktadır (Magnezyum Yağması). Magnezyum yetersizliği hücre zarındaki insülin reseptörlerinde körlük yaratarak glukozun içeri alınmasını zorlaştırır ve HbA1c seviyesini yukarı yönlü tetikler.</li>
+            <li><b>Hepsidin Blokajı ve Tiroid Frene Basma Aksı (HPA):</b> hs-CRP'deki hafif yükseliş (kronik düşük yoğunluklu yangı), karaciğerden Hepsidin hormonunu salgılatarak bağırsak demir kapılarını kilitler; bu durum demiri hücresel düzeyde tutsak bırakır. Hücrelerin demirsiz ve ATP'siz kaldığını fark eden HPA (Hipotalamus-Hipofiz-Adrenal) aksı ise hayatta kalabilmek için metabolizma hızını tiroid üzerinden (TSH yükselterek) bilinçli olarak yavaşlatır.</li>
+        </ul>
+        <p><b>Bütüncül Hücum Stratejisi:</b> Onarım süreci sadece eksik olanı yerine koymakla değil; hücre zarı akışkanlığını Omega-3 ile korumak, karaciğer blokajını Lipozomal Kurkumin ile söndürmek, stres aksını Magnezyum formları (Malat/Bisglisinat) ile dengelemek ve metilasyonu aktif dilaltı formlarla tetiklemek üzerine kurgulanmalıdır.</p>
+    </div>
+    """
+    
     html += "</body></html>"
     
     b64 = base64.b64encode(html.encode('utf-8')).decode()
@@ -253,14 +260,13 @@ if st.button("📊 Klinik & Farmakodinamik Motoru Çalıştır", type="primary",
     st.markdown("---")
     st.subheader("📑 Patofizyoloji ve Klinik Destek Raporu")
     
-    # TAM DÜZELTME: Bu satırdaki parametre de güvenli hale getirildi
+    # HTML ve Yazdırma Butonu Alanı
     st.markdown(pdf_raporu_uret(rapor_sonuclari), unsafe_allow_html=True)
-    
-    # TAM DÜZELTME: Buradaki <br> boşluk satırı parametresi de düzeltildi
     st.markdown("<br>", unsafe_allow_html=True)
     
+    # Sadeleştirilmiş, Akordeon (Expander) Parametre Listesi
     for p_name, veri in rapor_sonuclari.items():
-        with st.expander(f"🔹 {p_name} — {veri['deger']}", expanded=True):
+        with st.expander(f"🔹 {p_name} — {veri['deger']}", expanded=False):
             st.caption(f"Standart Referans: {veri['lab_ref']} | Fonksiyonel Optimal: {veri['opt_aralik']}")
             
             if veri["tip"] == "dusuk":
@@ -270,8 +276,24 @@ if st.button("📊 Klinik & Farmakodinamik Motoru Çalıştır", type="primary",
             else:
                 st.success(veri["durum"])
             
-            st.markdown(veri['dinamik'])
-            st.markdown("**[Bütüncül Patofizyolojik Nedenler]:**")
+            st.markdown("**[Olası Klinik Nedenler]:**")
             for n in veri['nedenler']:
                 st.markdown(f"- {n}")
-            st.markdown(f"💡 **[OTC ve Hücresel Hücum Önerisi]:**\n*{veri['takviye']}*")
+            st.markdown(f"💡 **[OTC Takviye Yaklaşımı]:**\n*{veri['takviye']}*")
+
+    # --- EN ALTA EKLENEN GENEL KLİNİK DEĞERLENDİRME PANELİ ---
+    st.markdown("---")
+    st.info("### 🧬 Genel Klinik Değerlendirme & Patofizyolojik Etkileşim")
+    
+    st.markdown("""
+    **Hücresel Sinyal İletim Hikayesi:**
+    
+    Girilen laboratuvar bulguları, hastanın vücudunda birbiri ardına tetiklenen sistemik bir **"Domino Etkisini"** net bir şekilde doğrulamaktadır. Tekil değerlerden ziyade, bu değerlerin birbiriyle konuşma dili hücresel krizleri işaret eder:
+    
+    *   **Metilasyon Döngüsü ve Enerji Krizi:** Fonksiyonel düzeyde baskılanan B12 Vitamini, hücrenin ana yazılım mekanizması olan metilasyon döngüsünü kilitleyerek detoksifikasyon ve nörotransmitter sentezini yavaşlatır. Ferritin ve Hemoglobin düşüklüğü ise mitokondriyal Elektron Taşıma Zinciri'nde (ETZ) oksijenizasyonu bozarak kronik yorgunluğu ve hücresel stresi derinleştirir.
+    *   **Kortizolün Magnezyum Yağması ve Reseptör Körlüğü:** Kronik sempatik dominansa (stres aksına) bağlı olarak salgılanan kortizol, magnezyumu böbreklerden idrarla hızla dışarı atar (**Magnezyum Yağması**). Magnezyum yetersizliği hücre zarındaki insülin reseptörlerinde körlük yaratarak glukozun içeri alınmasını zorlaştırır ve HbA1c seviyesini yukarı yönlü tetikler.
+    *   **Hepsidin Blokajı ve Tiroid Frene Basma Aksı (HPA):** hs-CRP'deki hafif yükseliş (kronik düşük yoğunluklu yangı), karaciğerden Hepsidin hormonunu salgılatarak bağırsak demir kapılarını kilitler; bu durum demiri hücresel düzeyde tutsak bırakır. Hücrelerin demirsiz ve ATP'siz kaldığını fark eden HPA (Hipotalamus-Hipofiz-Adrenal) aksı ise hayatta kalabilmek için metabolizma hızını tiroid üzerinden (**TSH yükselterek**) bilinçli olarak yavaşlatır.
+    
+    **💡 Bütüncül Hücum Stratejisi:**
+    Onarım süreci sadece eksik olanı yerine koymakla değil; hücre zarı akışkanlığını Omega-3 ile korumak, karaciğer blokajını Lipozomal Kurkumin ile söndürmek, stres aksını Magnezyum formları (Malat/Bisglisinat) ile dengelemek ve metilasyonu aktif dilaltı formlarla tetiklemek üzerine kurgulanmalıdır.
+    """)
